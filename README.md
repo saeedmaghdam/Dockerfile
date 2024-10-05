@@ -2,6 +2,50 @@
 
 ---
 
+## Tips and Tricks
+
+- **Use multi-stage builds** to keep the final image size small.
+- **Use .dockerignore** to exclude unnecessary files and directories.
+- **Use the right base image** to keep the image size small.
+- **Combine RUN commands** to reduce the number of layers.
+- **Use COPY instead of ADD** if you don't need the extra features of ADD.
+- **Use the right tag** for the base image to get the right version.
+- **Use the right version** of the base image to get the latest features and security updates.
+- **Use the right base image** for the application type (ASP.NET, .NET Core, etc.).
+- **Use the right base image** for the target platform (Linux, Windows, etc.).
+- **Use the right base image** for the target architecture (x86, ARM, etc.).
+- **Use the right base image** for the target runtime (Alpine, Debian, etc.).
+- **Use the right base image** for the target environment (development, production, etc.).
+- **Use the right base image** for the target workload (web server, database, etc.).
+- **Use the right base image** for the target language (Python, Node.js, etc.).
+- **Use the right base image** for the target framework (Django, Express, etc.).
+- **Use the right base image** for the target application (WordPress, Magento, etc.).
+- **Use the right base image** for the target service (NGINX, Redis, etc.).
+- **Use the right base image** for the target container (Docker, Kubernetes, etc.).
+- **Use the right base image** for the target cloud (AWS, Azure, etc.).
+- **Use the right base image** for the target provider (Google, IBM, etc.).
+- **Use the right base image** for the target registry (Docker Hub, GitHub, etc.).
+- **Use the right base image** for the target repository (official, community, etc.).
+- **Use the right base image** for the target organization (Microsoft, Google, etc.).
+- **Use the right base image** for the target team (Azure DevOps, GitHub Actions, etc.).
+- **Use the right base image** for the target project (web app, mobile app, etc.).
+- **Use the right base image** for the target client (browser, mobile, etc.).
+- **Use the right base image** for the target user (root, non-root, etc.).
+- **Use the right base image** for the target group (staff, users, etc.).
+- **Use the right base image** for the target permissions (read, write, etc.).
+- **Use the right base image** for the target security (firewall, antivirus, etc.).
+- **Use the right base image** for the target compliance (HIPAA, GDPR, etc.).
+- **Use the right base image** for the target regulations (PCI DSS, SOX, etc.).
+- **Use the right base image** for the target standards (ISO 27001, NIST, etc.).
+
+### Overwrite the default entrypoint
+
+```dockerfile
+docker run -it --rm --entrypoint /bin/sh websocket
+```
+
+---
+
 ## Dockerfile
 
 **Multi-stage .NET 8 Application Build**  
@@ -17,7 +61,7 @@ This Dockerfile is designed to **build and publish a .NET 8 application** in a *
 
 ```bash
 docker build -t websocket -f Dockerfile .
-docker run -d -p 8080:80 websocket
+docker run -p 8080:80 websocket
 ```
 
 ---
@@ -37,5 +81,22 @@ This Dockerfile builds and runs a .NET 8 application using a **multi-stage appro
 
 ```bash
 docker build -t websocket -f Dockerfile.alpine .
-docker run -d -p 8080:80 websocket
+docker run -p 8080:80 websocket
+```
+
+## Dockerfile.cache
+
+**Multi-stage .NET 8 Application Build with Alpine Runtime and Cache Optimization**  
+This Dockerfile builds and runs a .NET 8 application using a **multi-stage approach** with **Alpine Linux** as the runtime and introduces **caching optimizations** to speed up the build process.
+
+- Compared to the previous one, **cache mounts are added** for the `.nuget/packages` directory, **reducing build times** by reusing previously downloaded packages.
+- The initial checkout stage is now **split into three stages**: checkout, restore, and publish, enhancing **build process clarity** and **layer caching efficiency**.
+- Retains the **Alpine base image** for a **smaller runtime footprint**.
+- Final image size is minimized through **manual installation** of .NET runtime and necessary Alpine dependencies, just like the previous Dockerfile.
+
+### Usage
+
+```bash
+docker build -t websocket -f Dockerfile.cache .
+docker run -p 8080:80 websocket
 ```
