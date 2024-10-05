@@ -1,0 +1,83 @@
+# Reference: https://learn.microsoft.com/en-us/dotnet/core/docker/build-container?tabs=linux&pivots=dotnet-8-0
+
+# The following Dockerfile is a multi-stage build that builds a .NET 8 application in a container.
+# The first stage uses the .NET SDK image to restore, build, and publish the application.
+# The second stage uses the .NET runtime image to run the application.
+# The final image is smaller because it only contains the published output of the application.
+
+# Define a build argument for the platform
+ARG TARGETPLATFORM=linux/amd64
+
+# First stage: Build and publish using the appropriate SDK for the build platform
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0 AS checkout
+WORKDIR /App
+
+# Copy everything
+ADD https://github.com/saeedmaghdam/WebSocket.git ./src/
+
+# Restore the application in a separate stage
+FROM checkout AS restore
+ARG RUNTIME_IDENTIFIER
+# Use platform cache for restore
+RUN --mount=type=cache,target=/root/.nuget/packages \
+    dotnet restore -r $RUNTIME_IDENTIFIER ./src/WebSocketServer/WebSocketServer.csproj
+
+# Build for Production (Release mode)
+FROM restore AS build-prod
+ARG RUNTIME_IDENTIFIER
+RUN --mount=type=cache,target=/root/.nuget/packages \
+    dotnet build -c Release -r $RUNTIME_IDENTIFIER --no-restore ./src/WebSocketServer/WebSocketServer.csproj
+
+# Build for Development (Debug mode)
+FROM restore AS build-dev
+ARG RUNTIME_IDENTIFIER
+RUN --mount=type=cache,target=/root/.nuget/packages \
+    dotnet build -c Debug -r $RUNTIME_IDENTIFIER --no-restore ./src/WebSocketServer/WebSocketServer.csproj
+
+# Publish for Production
+FROM build-prod AS publish-prod
+ARG RUNTIME_IDENTIFIER
+RUN --mount=type=cache,target=/root/.nuget/packages \
+    dotnet publish -c Release -r $RUNTIME_IDENTIFIER --no-restore -o ./out ./src/WebSocketServer/WebSocketServer.csproj
+
+# Publish for Development
+FROM build-dev AS publish-dev
+ARG RUNTIME_IDENTIFIER
+RUN --mount=type=cache,target=/root/.nuget/packages \
+    dotnet publish -c Debug -r $RUNTIME_IDENTIFIER --no-restore -o ./out ./src/WebSocketServer/WebSocketServer.csproj
+
+# Second stage: Production runtime image
+FROM --platform=$TARGETPLATFORM alpine:3.20 AS runtime-prod
+WORKDIR /App
+EXPOSE 80
+
+COPY --from=publish-prod /App/out .
+
+RUN apk update && \
+    apk upgrade && \
+    apk add --no-cache bash icu-libs krb5-libs libgcc libintl libssl3 libstdc++ zlib
+
+RUN wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh && \
+    chmod +x dotnet-install.sh && \
+    ./dotnet-install.sh --channel 8.0 --version latest --runtime aspnetcore
+
+ENV ASPNETCORE_URLS=http://+:80
+ENTRYPOINT [ "/root/.dotnet/dotnet", "WebSocketServer.dll" ]
+
+# Second stage: Development runtime image
+FROM --platform=$TARGETPLATFORM alpine:3.20 AS runtime-dev
+WORKDIR /App
+EXPOSE 80
+
+COPY --from=publish-dev /App/out .
+
+RUN apk update && \
+    apk upgrade && \
+    apk add --no-cache bash icu-libs krb5-libs libgcc libintl libssl3 libstdc++ zlib
+
+RUN wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh && \
+    chmod +x dotnet-install.sh && \
+    ./dotnet-install.sh --channel 8.0 --version latest --runtime aspnetcore
+
+ENV ASPNETCORE_URLS=http://+:80
+ENTRYPOINT [ "/root/.dotnet/dotnet", "WebSocketServer.dll" ]

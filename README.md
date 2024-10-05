@@ -188,3 +188,43 @@ Build only the development environment without going through the full production
 ```bash
 docker build --target=build-env --platform linux/amd64 -t websocket-build -f Dockerfile.healthcheck --build-arg RUNTIME_IDENTIFIER=linux-amd64 --build-arg TARGETPLATFORM=linux/amd64 .
 ```
+
+---
+
+## Dockerfile.multioutputs
+
+---
+
+**Multi-stage .NET 8 Application Build with Separate Production and Development Pipelines**  
+This Dockerfile expands upon previous versions by introducing **distinct pipelines for production and development builds**. It allows for both **release** and **debug** configurations to be built, published, and run in separate runtime stages.
+
+- **Separate build stages** for **production (Release mode)** and **development (Debug mode)** are added, allowing different configurations to be built and optimized for their respective environments.
+- **Platform flexibility** remains, with `TARGETPLATFORM` and `RUNTIME_IDENTIFIER` dynamically set to support different architectures.
+- **Caching** is used to optimize the restore, build, and publish steps, reducing redundant package downloads.
+- **Two runtime stages**: one for **production** and one for **development**, each using **Alpine Linux** as the base image and installing platform-specific dependencies.
+- Both runtime images expose the application on **port 80** and run the published application using the installed **ASP.NET Core runtime**.
+
+**New Features Compared to `Dockerfile.platform`**:
+- **Separate build and publish pipelines for production and development**: This allows building and running **optimized release** images for production and **debuggable development** images for testing and development.
+- **Distinct runtime images**: One for **production** and one for **development**, ensuring the appropriate environment is used when running the container.
+
+Final image sizes: **~124MB** (production), **~124MB** (development)
+
+### Usage
+
+Build and run the production image:
+
+```bash
+docker build --target runtime-prod --platform linux/amd64 -t websocket-prod -f Dockerfile.multioutputs --build-arg RUNTIME_IDENTIFIER=linux-amd64 --build-arg TARGETPLATFORM=linux/amd64 .
+
+docker run -p 8080:80 websocket-prod
+```
+
+Build and run the development image:
+
+```bash
+docker build --target runtime-dev --platform linux/amd64 -t websocket-dev -f Dockerfile.multioutputs --build-arg RUNTIME_IDENTIFIER=linux-amd64 --build-arg TARGETPLATFORM=linux/amd64 .
+
+
+docker run -p 8080:80 websocket-dev
+```
