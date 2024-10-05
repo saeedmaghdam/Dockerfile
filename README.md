@@ -57,6 +57,8 @@ This Dockerfile is designed to **build and publish a .NET 8 application** in a *
 - **EXPOSES port 80** and configures the application to listen on that port.
 - Final image size is minimized by **excluding SDK-related files** and keeping only the **published output**.
 
+Final image size: **~221MB**
+
 ### Usage
 
 ```bash
@@ -77,6 +79,8 @@ This Dockerfile builds and runs a .NET 8 application using a **multi-stage appro
 - The .NET runtime is **installed manually** using the **dotnet-install script**.
 - **Final image size is reduced** further by using **Alpine** compared to the full runtime image.
 
+Final image size: **~124MB**
+
 ### Usage
 
 ```bash
@@ -93,6 +97,8 @@ This Dockerfile builds and runs a .NET 8 application using a **multi-stage appro
 - The initial checkout stage is now **split into three stages**: checkout, restore, and publish, enhancing **build process clarity** and **layer caching efficiency**.
 - Retains the **Alpine base image** for a **smaller runtime footprint**.
 - Final image size is minimized through **manual installation** of .NET runtime and necessary Alpine dependencies, just like the previous Dockerfile.
+
+Final image size: **~124MB**
 
 ### Usage
 
