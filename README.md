@@ -132,3 +132,30 @@ Final image size: **~124MB**
 docker build --platform linux/amd64 -t websocket -f Dockerfile.platform-specific --build-arg RUNTIME_IDENTIFIER=linux-amd64 --build-arg TARGETPLATFORM=linux/amd64 .
 docker run -p 8080:80 websocket
 ```
+
+---
+
+## Dockerfile.secret
+
+**Alpine Runtime with Secret Mounting**  
+This Dockerfile demonstrates the use of **secret mounting** in a **single-stage Alpine build**. It showcases how to securely access sensitive data during the build process without baking it into the final image.
+
+- The **Alpine Linux image** is used as the base.
+- A **secret** is securely accessed during the build using the `--mount=type=secret` option. The secret is mounted at `/run/secrets/test_secret` and accessed within the `RUN` command.
+- This setup ensures sensitive information is only available during the build process and is not included in the final image.
+
+**Key Features**:
+- **Secret management**: Handles sensitive data securely with `--mount=type=secret`, preventing it from being exposed in the image layers.
+- **Platform support**: Utilizes the `TARGETPLATFORM` argument to support different architectures when building the image.
+
+### Usage
+
+```bash 
+docker secret create test_secret ./secret
+
+docker build --secret id=test_secret,src=./secret -t test_secret_image -f Dockerfile.secret . --progress=plain --no-cache
+docker rum --rm test_secret_image
+```
+
+---
+
