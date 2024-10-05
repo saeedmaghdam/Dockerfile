@@ -106,3 +106,29 @@ Final image size: **~124MB**
 docker build -t websocket -f Dockerfile.cache .
 docker run -p 8080:80 websocket
 ```
+
+---
+
+## Dockerfile.platform
+
+**Multi-stage .NET 8 Application Build with Generic Platform Support**  
+This Dockerfile builds and runs a .NET 8 application using a **multi-stage approach** while introducing **platform flexibility** to support multiple architectures (e.g., **linux/amd64**, **linux/arm64**). 
+
+- The **first stage** builds and publishes the application using the **.NET SDK image**, with the runtime identifier dynamically set based on the **target platform**.
+- Caching is used for the `.nuget/packages` directory to **optimize the restore, build, and publish processes**.
+- The **second stage** switches to an **Alpine Linux base image** using the specified platform, allowing the final image to be platform-specific.
+- **Platform-specific dependencies** are installed in the runtime stage to ensure compatibility across different platforms.
+- **.NET runtime** is installed dynamically using the install script, supporting platform variations such as **ASP.NET Core**.
+
+**New Features**:
+- **Platform flexibility**: Uses `ARG TARGETPLATFORM` to support various platforms like **amd64** and **arm64**.
+- **Generic platform handling** in the `FROM` statements, allowing Docker builds for different platforms with minimal changes.
+
+Final image size: **~124MB**
+
+### Usage
+
+```bash
+docker build --platform linux/amd64 -t websocket -f Dockerfile.platform-specific --build-arg RUNTIME_IDENTIFIER=linux-amd64 --build-arg TARGETPLATFORM=linux/amd64 .
+docker run -p 8080:80 websocket
+```
