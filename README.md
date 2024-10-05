@@ -191,7 +191,7 @@ docker build --target=build-env --platform linux/amd64 -t websocket-build -f Doc
 
 ---
 
-## Dockerfile.multioutputs
+## Dockerfile.multioutput
 
 ---
 
@@ -215,7 +215,7 @@ Final image sizes: **~124MB** (production), **~124MB** (development)
 Build and run the production image:
 
 ```bash
-docker build --target runtime-prod --platform linux/amd64 -t websocket-prod -f Dockerfile.multioutputs --build-arg RUNTIME_IDENTIFIER=linux-amd64 --build-arg TARGETPLATFORM=linux/amd64 .
+docker build --target runtime-prod --platform linux/amd64 -t websocket-prod -f Dockerfile.multioutput --build-arg RUNTIME_IDENTIFIER=linux-amd64 --build-arg TARGETPLATFORM=linux/amd64 .
 
 docker run -p 8080:80 websocket-prod
 ```
@@ -223,8 +223,7 @@ docker run -p 8080:80 websocket-prod
 Build and run the development image:
 
 ```bash
-docker build --target runtime-dev --platform linux/amd64 -t websocket-dev -f Dockerfile.multioutputs --build-arg RUNTIME_IDENTIFIER=linux-amd64 --build-arg TARGETPLATFORM=linux/amd64 .
-
+docker build --target runtime-dev --platform linux/amd64 -t websocket-dev -f Dockerfile.multioutput --build-arg RUNTIME_IDENTIFIER=linux-amd64 --build-arg TARGETPLATFORM=linux/amd64 .
 
 docker run -p 8080:80 websocket-dev
 ```
