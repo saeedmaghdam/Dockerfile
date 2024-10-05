@@ -178,3 +178,13 @@ Final image size: **~124MB**
 docker build --platform linux/amd64 -t websocket -f Dockerfile.healthcheck --build-arg RUNTIME_IDENTIFIER=linux-amd64 --build-arg TARGETPLATFORM=linux/amd64 .
 docker run -p 8080:80 websocket
 ```
+
+---
+
+## Using Targeted Builds (--target)
+
+Build only the development environment without going through the full production build process.
+
+```bash
+docker build --target=build-env --platform linux/amd64 -t websocket-build -f Dockerfile.healthcheck --build-arg RUNTIME_IDENTIFIER=linux-amd64 --build-arg TARGETPLATFORM=linux/amd64 .
+```
