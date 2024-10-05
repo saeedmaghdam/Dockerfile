@@ -129,7 +129,7 @@ Final image size: **~124MB**
 ### Usage
 
 ```bash
-docker build --platform linux/amd64 -t websocket -f Dockerfile.platform-specific --build-arg RUNTIME_IDENTIFIER=linux-amd64 --build-arg TARGETPLATFORM=linux/amd64 .
+docker build --platform linux/amd64 -t websocket -f Dockerfile.platform --build-arg RUNTIME_IDENTIFIER=linux-amd64 --build-arg TARGETPLATFORM=linux/amd64 .
 docker run -p 8080:80 websocket
 ```
 
@@ -159,3 +159,22 @@ docker rum --rm test_secret_image
 
 ---
 
+## Dockerfile.healthcheck
+
+**Multi-stage .NET 8 Application Build with Health Check**  
+This Dockerfile builds and runs a **.NET 8 application** using the same **multi-stage approach** as the previous `Dockerfile.platform`, with the addition of a **health check** to monitor the application's availability.
+
+- **Health check added**: A new **health check** feature monitors the application's availability by using `wget` to check the HTTP endpoint at `localhost:80`. It runs every 30 seconds with a 10-second timeout, retries 3 times, and fails if the endpoint does not respond.
+- **Other features remain the same** as `Dockerfile.platform`, including platform support via `TARGETPLATFORM`, performance optimization through caching, and a minimal runtime using **Alpine Linux**.
+
+**New Feature**:
+- **Health check**: Ensures the application is responsive by periodically checking the HTTP endpoint.
+
+Final image size: **~124MB**
+
+### Usage
+
+```bash
+docker build --platform linux/amd64 -t websocket -f Dockerfile.healthcheck --build-arg RUNTIME_IDENTIFIER=linux-amd64 --build-arg TARGETPLATFORM=linux/amd64 .
+docker run -p 8080:80 websocket
+```

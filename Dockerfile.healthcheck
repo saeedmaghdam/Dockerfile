@@ -1,0 +1,64 @@
+# Reference: https://learn.microsoft.com/en-us/dotnet/core/docker/build-container?tabs=linux&pivots=dotnet-8-0
+
+# The following Dockerfile is a multi-stage build that builds a .NET 8 application in a container.
+# The first stage uses the .NET SDK image to restore, build, and publish the application.
+# The second stage uses the .NET runtime image to run the application.
+# The final image is smaller because it only contains the published output of the application.
+
+# Define a build argument for the platform
+ARG TARGETPLATFORM=linux/amd64
+
+# First stage: Build and publish using the appropriate SDK for the build platform
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0 AS checkout
+WORKDIR /App
+
+# Copy everything
+ADD https://github.com/saeedmaghdam/WebSocket.git ./src/
+
+FROM checkout AS restore
+# Set the runtime identifier dynamically based on the target platform
+ARG RUNTIME_IDENTIFIER
+# Use platform cache for restore
+RUN --mount=type=cache,target=/root/.nuget/packages \
+    dotnet restore -r $RUNTIME_IDENTIFIER ./src/WebSocketServer/WebSocketServer.csproj
+
+FROM restore AS build-env
+# Set the runtime identifier dynamically based on the target platform
+ARG RUNTIME_IDENTIFIER
+# Build with the appropriate runtime identifier
+RUN --mount=type=cache,target=/root/.nuget/packages \
+    dotnet build -c Release -r $RUNTIME_IDENTIFIER --no-restore ./src/WebSocketServer/WebSocketServer.csproj
+
+FROM restore AS publish
+# Set the runtime identifier dynamically based on the target platform
+ARG RUNTIME_IDENTIFIER
+# Publish with the appropriate runtime identifier
+RUN --mount=type=cache,target=/root/.nuget/packages \
+    dotnet publish -c Release -r $RUNTIME_IDENTIFIER --no-restore -o ./out ./src/WebSocketServer/WebSocketServer.csproj
+
+# Second stage: Build the runtime image with platform-specific base image
+FROM --platform=$TARGETPLATFORM alpine:3.20 AS runtime
+WORKDIR /App
+EXPOSE 80
+
+COPY --from=publish /App/out .
+
+# Install platform-specific dependencies
+RUN apk update && \
+    apk upgrade && \
+    apk add --no-cache bash icu-libs krb5-libs libgcc libintl libssl3 libstdc++ zlib
+
+# Install .NET runtime using the install script for the specific platform
+RUN wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh && \
+    chmod +x dotnet-install.sh && \
+    ./dotnet-install.sh --channel 8.0 --version latest --runtime aspnetcore
+
+# Set environment variables and entry point
+ENV ASPNETCORE_URLS=http://+:80
+
+# Add the health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD wget --spider http://localhost:80 || exit 1
+
+# Final entry point
+ENTRYPOINT [ "/root/.dotnet/dotnet", "WebSocketServer.dll" ]
